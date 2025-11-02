@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Windows Desktop – OBS Live Sources</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Desktop -->
+  <div id="desktop" class="desktop" aria-label="Desktop"></div>
+
+  <!-- Taskbar -->
+  <div id="taskbar" class="taskbar" role="toolbar" aria-label="Taskbar">
+    <div class="taskbar-left">
+      <button id="start-btn" class="start-btn" aria-haspopup="true" aria-expanded="false">⊞</button>
+      <div id="taskbar-tabs" class="taskbar-tabs" role="tablist" aria-label="Windows"></div>
+    </div>
+    <div class="taskbar-right">
+      <!-- OBS status button: left of clock -->
+      <button id="obs-status-btn" class="obs-status" title="OBS: Disconnected">
+        <span id="obs-dot" class="obs-dot" aria-hidden="true"></span>
+        <span class="obs-label">OBS</span>
+      </button>
+      <div class="taskbar-datetime">
+        <span id="taskbar-date">--/--/----</span>
+        <span id="taskbar-clock">--:--</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Start Menu -->
+  <div id="start-menu" class="start-menu" hidden>
+    <div class="start-menu-body">
+      <button id="start-new-source" class="menu-item">Add Source Window…</button>
+    </div>
+  </div>
+
+  <!-- Window template -->
+  <template id="window-template">
+    <div class="win" role="dialog" aria-modal="false">
+      <div class="win-titlebar">
+        <span class="win-icon">🗔</span>
+        <span class="win-caption">Window</span>
+        <div class="win-controls">
+          <button class="win-min" title="Minimize">🗕</button>
+          <button class="win-max" title="Maximize">🗖</button>
+          <button class="win-close" title="Close">🗙</button>
+        </div>
+      </div>
+      <div class="win-content"></div>
+      <div class="win-resizer" title="Resize"></div>
+    </div>
+  </template>
+
+  <!-- OBS Settings Panel (tabbed) -->
+  <div id="obs-settings" class="hidden">
+    <div class="obs-tabs-wrapper">
+      <!-- CONTENT: Settings -->
+      <div id="obs-tabpane-settings" class="obs-tabpane active">
+        <form id="obs-connect-form" class="form-grid" autocomplete="off">
+          <h3>OBS WebSocket</h3>
+          <label>Port
+            <input type="number" id="obs-port" placeholder="4455" value="4455" />
+          </label>
+          <label>Password
+            <input type="password" id="obs-pass" placeholder="Leave empty if none" />
+          </label>
+          <div class="row">
+            <button type="submit" class="btn primary">Connect</button>
+            <button type="button" id="obs-disconnect" class="btn">Disconnect</button>
+            <button type="button" id="obs-reset-sources" class="btn danger">Reset Source Windows</button>
+          </div>
+          <div id="obs-status" class="status">Disconnected</div>
+          <p class="hint">
+            Host is fixed to <code>127.0.0.1</code>. Match port/password in
+            <strong>OBS → Tools → WebSocket Server Settings</strong>.
+          </p>
+        </form>
+      </div>
+
+      <!-- CONTENT: Debug -->
+      <div id="obs-tabpane-debug" class="obs-tabpane">
+        <div class="debug-grid">
+          <div class="debug-kv">
+            <div><strong>Status:</strong> <span id="dbg-status">—</span></div>
+            <div><strong>OBS Base:</strong> <span id="dbg-base">—</span></div>
+            <div><strong>Viewport:</strong> <span id="dbg-view">—</span></div>
+            <div><strong>Active Scene:</strong> <span id="dbg-scene">—</span></div>
+          </div>
+          <div class="debug-windows">
+            <h4>Windows</h4>
+            <div id="dbg-windows-list" class="dbg-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB STRIP (bottom right) -->
+      <div class="obs-tabbar">
+        <button id="obs-tab-settings" class="obs-tabbtn active">Settings</button>
+        <button id="obs-tab-debug" class="obs-tabbtn">Debug</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Source Catalog Dialog (scene-only) -->
+  <div id="source-dialog" class="hidden">
+    <div class="source-header">
+      <div class="source-title">Scene Sources</div>
+      <div class="source-actions">
+        <input id="source-custom-title" class="title-input" placeholder="Custom title (optional)" />
+        <button id="source-refresh" class="btn">Refresh</button>
+      </div>
+    </div>
+    <div id="source-hint" class="hint">Connect to OBS to list scene sources.</div>
+    <div id="source-grid" class="source-grid"></div>
+    <div class="source-footer">
+      <button id="source-create" class="btn primary" disabled>Create</button>
+      <button id="source-cancel" class="btn">Cancel</button>
+    </div>
+  </div>
+
+  <script src="desktop.js"></script>
+</body>
+</html>
