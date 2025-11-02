@@ -15,7 +15,6 @@ html, body{
   height: 100%;
   margin: 0;
   overflow: hidden;           /* hide scrollbars globally */
-  background: var(--bg) url("https://raw.githubusercontent.com/dracula/wallpaper/master/second-collection/leaves/dracula-leaves-6272a4-dark.png") center/cover fixed no-repeat;
   color: var(--text);
   font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
@@ -91,6 +90,10 @@ html, body{
   display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center;
   padding: 0 8px; background: rgba(30,35,42,0.8); border-bottom: 1px solid var(--border);
 }
+
+.tc-row { display:flex; gap:.5rem; align-items:center; }
+.tc-row input[type="text"] { flex:1; }
+
 .win-icon{ font-size: 14px; opacity: .9; }
 .win-caption{ font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .win-controls{ display: inline-flex; gap: 6px; }
