@@ -31,13 +31,36 @@ export function createWindow(
   tab.innerHTML = `<span class="tab-icon">${icon}</span><span class="tab-title">${title}</span>`;
   taskbarTabs.appendChild(tab);
 
-  const winInfo = { id:_id, el:node, tab, title, icon, minimized:false, maximized:false, prevRect:null, kind, meta: meta || {} };
+  const defaultDisplay = getComputedStyle(node).display || "grid";
+
+  const winInfo = {
+    id:_id, el:node, tab, title, icon,
+    minimized:false, maximized:false, prevRect:null,
+    kind, meta: meta || {}, defaultDisplay
+  };
   Object.assign(winInfo.meta, { lastOrigin:null, lastStamp:0, suppressWindowToObsUntil:0, suppressObsToWindowUntil:0, last:{} });
 
   windows.set(_id, winInfo);
 
-  tab.addEventListener("click", ()=> setMinimized(winInfo, !winInfo.minimized));
-
+  tab.addEventListener("click", ()=>{
+  if (winInfo.minimized) {
+    // was minimized → restore
+    setMinimized(winInfo, false);
+  } else {
+    const isActive = tab.classList.contains("active");
+    if (isActive) {
+      // active → minimize
+      setMinimized(winInfo, true);
+    } else {
+      // not active → just focus/raise
+      if (winInfo.el.style.display === "none") {
+        setMinimized(winInfo, false);
+      }
+      focusWindow(winInfo);
+    }
+  }
+});
+  
   setupWindowControls(winInfo);
   setupDragResize(winInfo);
   focusWindow(winInfo);
@@ -53,8 +76,12 @@ export function bringToFront(el){ zTop += 1; el.style.zIndex = String(zTop); }
 
 export function setMinimized(winInfo, value){
   winInfo.minimized = !!value;
-  winInfo.el.style.display = winInfo.minimized ? "none" : "grid";
-  if (!winInfo.minimized) focusWindow(winInfo);
+  if (winInfo.minimized) {
+    winInfo.el.style.display = "none";
+  } else {
+    winInfo.el.style.display = winInfo.defaultDisplay || "grid";
+    focusWindow(winInfo);
+  }
   addWindowState(winInfo);
   if (!winInfo.minimized && onScheduleSync) onScheduleSync(winInfo);
 }
@@ -170,3 +197,4 @@ export function removeWindowState(id){
   state.windows = (state.windows||[]).filter(w=>w.id!==id);
   writeState(state);
 }
+
