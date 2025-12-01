@@ -76,12 +76,20 @@ export function bringToFront(el){ zTop += 1; el.style.zIndex = String(zTop); }
 
 export function setMinimized(winInfo, value){
   winInfo.minimized = !!value;
+
   if (winInfo.minimized) {
     winInfo.el.style.display = "none";
   } else {
+    // restore original display
     winInfo.el.style.display = winInfo.defaultDisplay || "grid";
+
+    if (winInfo.kind === "source") {
+      lockWindowToAspect(winInfo);
+    }
+
     focusWindow(winInfo);
   }
+
   addWindowState(winInfo);
   if (!winInfo.minimized && onScheduleSync) onScheduleSync(winInfo);
 }
@@ -197,4 +205,5 @@ export function removeWindowState(id){
   state.windows = (state.windows||[]).filter(w=>w.id!==id);
   writeState(state);
 }
+
 
