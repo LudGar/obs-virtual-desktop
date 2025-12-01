@@ -1,5 +1,16 @@
-import { $, escapeHtml, effectiveSourceSizeFromTransform, getChromeInsets, lockWindowToAspect } from "./utils.js";
-import { createWindow, addWindowState, hasWindow, getWindowById } from "./windowManager.js";
+import {
+  $,
+  escapeHtml,
+  effectiveSourceSizeFromTransform,
+  getChromeInsets,
+  lockWindowToAspect
+} from "./utils.js";
+import {
+  createWindow,
+  addWindowState,
+  hasWindow,
+  getWindowById
+} from "./windowManager.js";
 import { getActiveSceneName } from "./obsClient.js";
 import { findOwningSceneAndItemId, scheduleSync } from "./sync.js";
 
@@ -8,7 +19,7 @@ let cachedInputs = [];
 let selectedEntry = null;
 let selectedCardEl = null;
 
-// we'll wire this from main.js so we can toggle the Create button
+// wired from main.js so we can toggle button + title
 let _sourceCreateBtn = null;
 let _sourceCustomTitle = null;
 
@@ -26,31 +37,36 @@ export function wireCatalogUI({
   sourceCustomTitle,
   taskbarTabs,
   desktop,
-  tplWin,
+  tplWin
 }) {
   _sourceCreateBtn = sourceCreateBtn;
   _sourceCustomTitle = sourceCustomTitle;
 
-  // Reset button state initially
   if (_sourceCreateBtn) _sourceCreateBtn.disabled = true;
 
   // Refresh list
   sourceRefreshBtn?.addEventListener("click", () =>
-    renderSourceCatalog({ sourceGrid, sourceHint })
-      .catch((e) => (sourceHint.textContent = e.message))
+    renderSourceCatalog({ sourceGrid, sourceHint }).catch(
+      (e) => (sourceHint.textContent = e.message)
+    )
   );
 
   // Create window from selected card
   sourceCreateBtn?.addEventListener("click", async () => {
     if (!selectedEntry) return;
-    const titleOverride = (_sourceCustomTitle?.value || "").trim() || selectedEntry.name;
+    const titleOverride =
+      (_sourceCustomTitle?.value || "").trim() || selectedEntry.name;
+
     await createSourceWindow(selectedEntry.name, {
       titleOverride,
       taskbarTabs,
       desktop,
       tplWin,
       sourceDialog,
-      restore: null, // explicit new window
+      restore: null,
+      // NEW: pass through the exact scene + item we clicked
+      selectedSceneName: selectedEntry.sceneName,
+      selectedSceneItemId: selectedEntry.sceneItemId
     });
   });
 
@@ -64,9 +80,12 @@ export function wireCatalogUI({
 async function renderSourceCatalog({ sourceGrid, sourceHint }) {
   sourceGrid.innerHTML = "";
   selectedEntry = null;
-  if (selectedCardEl) { selectedCardEl.classList.remove("selected"); selectedCardEl = null; }
-  if (_sourceCreateBtn) _sourceCreateBtn.disabled = true;          // <— keep disabled until a card is selected
-  if (_sourceCustomTitle) _sourceCustomTitle.value = "";            // optional: clear previous custom title
+  if (selectedCardEl) {
+    selectedCardEl.classList.remove("selected");
+    selectedCardEl = null;
+  }
+  if (_sourceCreateBtn) _sourceCreateBtn.disabled = true;
+  if (_sourceCustomTitle) _sourceCustomTitle.value = "";
 
   if (!obs?.connected) {
     sourceHint.textContent = "Connect to OBS to list scene sources.";
@@ -75,13 +94,21 @@ async function renderSourceCatalog({ sourceGrid, sourceHint }) {
 
   // Build input kind lookup once
   if (!cachedInputs.length) cachedInputs = await obs.getInputs();
-  const kindByName = new Map(cachedInputs.map((i)=>[i.inputName, (i.inputKind||"").toLowerCase()]));
+  const kindByName = new Map(
+    cachedInputs.map((i) => [i.inputName, (i.inputKind || "").toLowerCase()])
+  );
 
   // Active scene items
   const sceneName = await getActiveSceneName(obs);
   const items = await obs.request("GetSceneItemList", { sceneName });
+
   let entries = (Array.isArray(items?.sceneItems) ? items.sceneItems : [])
-    .map((it) => ({ name: it?.sourceName || "", sceneItemId: it?.sceneItemId, kind: (kindByName.get(it?.sourceName || "") || "").toLowerCase() }))
+    .map((it) => ({
+      name: it?.sourceName || "",
+      sceneItemId: it?.sceneItemId,
+      kind: (kindByName.get(it?.sourceName || "") || "").toLowerCase(),
+      sceneName // ← keep which scene this came from
+    }))
     .filter((e) => e.name);
 
   // Hide this UI if it's running as a Browser Source in OBS
@@ -92,10 +119,16 @@ async function renderSourceCatalog({ sourceGrid, sourceHint }) {
     for (const e of entries) {
       if (e.kind === "browser_source") {
         try {
-          const settings = await obs.request("GetInputSettings", { inputName: e.name });
-          const url = (settings?.inputSettings?.url || "").trim().replace(/\/+$/, "");
+          const settings = await obs.request("GetInputSettings", {
+            inputName: e.name
+          });
+          const url = (settings?.inputSettings?.url || "")
+            .trim()
+            .replace(/\/+$/, "");
           if (url && url === here) continue;
-        } catch {}
+        } catch {
+          // ignore, keep entry
+        }
       }
       filtered.push(e);
     }
@@ -107,14 +140,18 @@ async function renderSourceCatalog({ sourceGrid, sourceHint }) {
     return;
   }
 
-  sourceHint.textContent = `${entries.length} source${entries.length===1?"":"s"} in scene "${sceneName}".`;
+  sourceHint.textContent = `${entries.length} source${
+    entries.length === 1 ? "" : "s"
+  } in scene "${sceneName}".`;
 
   for (const it of entries) {
     const card = document.createElement("div");
     card.className = "source-card";
     card.innerHTML = `
       <div class="sc-icon">${iconForKind(it.kind)}</div>
-      <div class="sc-title" title="${escapeHtml(it.name)}">${escapeHtml(it.name)}</div>
+      <div class="sc-title" title="${escapeHtml(it.name)}">${escapeHtml(
+        it.name
+      )}</div>
       <div class="sc-kind">${prettyKind(it.kind)}</div>
     `;
     card.addEventListener("click", () => {
@@ -123,11 +160,11 @@ async function renderSourceCatalog({ sourceGrid, sourceHint }) {
       selectedCardEl.classList.add("selected");
       selectedEntry = it;
 
-      // Enable the Create button now that a source is selected
       if (_sourceCreateBtn) _sourceCreateBtn.disabled = false;
-
-      // Fill the custom title with the source name if empty
-      if (_sourceCustomTitle && !_sourceCustomTitle.value.trim()) {
+      if (
+        _sourceCustomTitle &&
+        !_sourceCustomTitle.value.trim()
+      ) {
         _sourceCustomTitle.value = it.name;
       }
     });
@@ -135,10 +172,15 @@ async function renderSourceCatalog({ sourceGrid, sourceHint }) {
   }
 }
 
-function prettyKind(kind){
+function prettyKind(kind) {
   if (!kind) return "Source";
   if (kind.includes("browser_source")) return "Browser Source";
-  if (kind.includes("monitor") || kind.includes("display") || kind.includes("screen")) return "Display Capture";
+  if (
+    kind.includes("monitor") ||
+    kind.includes("display") ||
+    kind.includes("screen")
+  )
+    return "Display Capture";
   if (kind.includes("window")) return "Window Capture";
   if (kind.includes("dshow") || kind.includes("v4l")) return "Video Device";
   if (kind.includes("decklink")) return "DeckLink";
@@ -147,10 +189,16 @@ function prettyKind(kind){
   if (kind.includes("game")) return "Game Capture";
   return kind || "Source";
 }
-function iconForKind(kind){
+
+function iconForKind(kind) {
   if (!kind) return "🎛️";
   if (kind.includes("browser_source")) return "🌐";
-  if (kind.includes("monitor") || kind.includes("display") || kind.includes("screen")) return "🖥️";
+  if (
+    kind.includes("monitor") ||
+    kind.includes("display") ||
+    kind.includes("screen")
+  )
+    return "🖥️";
   if (kind.includes("window")) return "🪟";
   if (kind.includes("dshow") || kind.includes("v4l")) return "📷";
   if (kind.includes("decklink")) return "🎞️";
@@ -162,10 +210,19 @@ function iconForKind(kind){
 
 export async function createSourceWindow(
   sourceName,
-  { titleOverride, taskbarTabs, desktop, tplWin, sourceDialog, restore }
-){
+  {
+    titleOverride,
+    taskbarTabs,
+    desktop,
+    tplWin,
+    sourceDialog,
+    restore,
+    selectedSceneName,
+    selectedSceneItemId
+  }
+) {
   // If we're restoring and the window already exists, just resync and return it.
-  if (restore?.id && hasWindow(restore.id)){
+  if (restore?.id && hasWindow(restore.id)) {
     const existing = getWindowById(restore.id);
     scheduleSync(existing);
     return existing;
@@ -202,19 +259,30 @@ export async function createSourceWindow(
         sourceName,
         interval: restore?.interval ?? 500,
         aspect: null,
-        owningScene: null,
-        sceneItemId: null,
-        last: {},
-      },
+        // if we already know which scene item this is (from picker),
+        // seed it so we don't have to scan again:
+        owningScene: selectedSceneName || restore?.owningScene || null,
+        sceneItemId:
+          selectedSceneItemId != null
+            ? selectedSceneItemId
+            : restore?.sceneItemId ?? null,
+        last: {}
+      }
     },
     taskbarTabs,
     desktop,
     tplWin
   );
 
-  // Honor minimized/maximized states
-  if (restore?.maximized) { const b = w.el.querySelector(".win-max"); if (b) b.click(); }
-  if (restore?.minimized) { const b = w.el.querySelector(".win-min"); if (b) b.click(); }
+  // Honor minimized/maximized states when restoring
+  if (restore?.maximized) {
+    const b = w.el.querySelector(".win-max");
+    if (b) b.click();
+  }
+  if (restore?.minimized) {
+    const b = w.el.querySelector(".win-min");
+    if (b) b.click();
+  }
 
   // Maintain aspect on user resize
   const ro = new ResizeObserver(() => {
@@ -222,30 +290,42 @@ export async function createSourceWindow(
       lockWindowToAspect(w);
     }
   });
-  
-  ro.observe(w.el); w.meta._ro = ro;
+  ro.observe(w.el);
+  w.meta._ro = ro;
 
   // Resolve scene & item, compute crop-aware aspect, first sync
-  (async()=>{
-    try{
-      const { sceneName, sceneItemId } = await findOwningSceneAndItemId(obs, sourceName);
-      w.meta.owningScene = sceneName; w.meta.sceneItemId = sceneItemId;
+  (async () => {
+    try {
+      let sceneName = w.meta.owningScene;
+      let sceneItemId = w.meta.sceneItemId;
 
-      const tr = await obs.request("GetSceneItemTransform", { sceneName, sceneItemId });
+      // Only scan for owning scene if we don't already know it
+      if (!sceneName || sceneItemId == null) {
+        const r = await findOwningSceneAndItemId(obs, sourceName);
+        sceneName = r.sceneName;
+        sceneItemId = r.sceneItemId;
+        w.meta.owningScene = sceneName;
+        w.meta.sceneItemId = sceneItemId;
+      }
+
+      const tr = await obs.request("GetSceneItemTransform", {
+        sceneName,
+        sceneItemId
+      });
       const s = tr?.sceneItemTransform || {};
       const { effW, effH } = effectiveSourceSizeFromTransform(s);
-      const aspect = effW / effH || 16/9;
+      const aspect = effW / effH || 16 / 9;
       w.meta.aspect = aspect;
 
-      if (!restore){
+      if (!restore) {
         const { dx, dy } = getChromeInsets(w);
         const outer = w.el.getBoundingClientRect();
         const minH = 240;
         const newH = Math.max(minH, Math.round((outer.width - dx) / aspect));
-        w.el.style.height = (newH + dy) + "px";
+        w.el.style.height = newH + dy + "px";
       }
       lockWindowToAspect(w);
-    } catch(e){
+    } catch (e) {
       w.meta.last.error = e.message;
     } finally {
       addWindowState(w);
