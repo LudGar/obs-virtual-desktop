@@ -28,15 +28,27 @@ export function getContentInsets(winInfo){
 export function lockWindowToAspect(winInfo){
   if (winInfo.kind !== "source") return;
   const a = winInfo?.meta?.aspect;
-  if (!a || !isFinite(a) || a<=0) return;
+  if (!a || !isFinite(a) || a <= 0) return;
+
   const { dx, dy } = getChromeInsets(winInfo);
   const outer = winInfo.el.getBoundingClientRect();
-  let cw = Math.max(1, Math.round(outer.width-dx));
-  let ch = Math.max(1, Math.round(outer.height-dy));
-  const th = Math.round(cw / a), tw = Math.round(ch * a);
-  if (Math.abs(th-ch) < Math.abs(tw-cw)) ch = th; else cw = tw;
-  winInfo.el.style.width  = (cw+dx) + "px";
-  winInfo.el.style.height = (ch+dy) + "px";
+  
+  if (!outer.width || !outer.height) return;
+  if (outer.width <= dx + 16 || outer.height <= dy + 16) return;
+
+  let cw = Math.max(1, Math.round(outer.width - dx));
+  let ch = Math.max(1, Math.round(outer.height - dy));
+
+  const th = Math.round(cw / a);
+  const tw = Math.round(ch * a);
+  if (Math.abs(th - ch) < Math.abs(tw - cw)) {
+    ch = th;
+  } else {
+    cw = tw;
+  }
+
+  winInfo.el.style.width  = (cw + dx) + "px";
+  winInfo.el.style.height = (ch + dy) + "px";
 }
 
 // Alignment & crop
@@ -65,4 +77,5 @@ export function effectiveSourceSizeFromTransform(s){
   const effW = Math.max(1, srcW - cropL - cropR);
   const effH = Math.max(1, srcH - cropT - cropB);
   return { effW, effH, srcW, srcH, cropL, cropR, cropT, cropB };
+
 }
