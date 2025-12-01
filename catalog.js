@@ -1,4 +1,3 @@
-// catalog.js
 import { $, escapeHtml, effectiveSourceSizeFromTransform, getChromeInsets, lockWindowToAspect } from "./utils.js";
 import { createWindow, addWindowState, hasWindow, getWindowById } from "./windowManager.js";
 import { getActiveSceneName } from "./obsClient.js";
@@ -218,7 +217,12 @@ export async function createSourceWindow(
   if (restore?.minimized) { const b = w.el.querySelector(".win-min"); if (b) b.click(); }
 
   // Maintain aspect on user resize
-  const ro = new ResizeObserver(()=>{ if (w.meta && w.meta.aspect) lockWindowToAspect(w); });
+  const ro = new ResizeObserver(() => {
+    if (!w.minimized && w.meta && w.meta.aspect) {
+      lockWindowToAspect(w);
+    }
+  });
+  
   ro.observe(w.el); w.meta._ro = ro;
 
   // Resolve scene & item, compute crop-aware aspect, first sync
