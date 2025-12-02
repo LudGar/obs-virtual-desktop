@@ -1,1 +1,1 @@
-you should be able to run it via the browser source
+why have a real desktop if you can have a virtual one?
