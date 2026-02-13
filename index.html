@@ -1,126 +1,96 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Windows Desktop – OBS Live Sources</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OBS Studio Taskbar Control</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Desktop -->
-  <div id="desktop" class="desktop" aria-label="Desktop"></div>
+  <div id="app">
+    <div id="main-content">
+      <div id="status-display">
+        <div id="status-icon">🎥</div>
+        <h2 id="status-title">OBS Studio Control</h2>
+        <p id="status-subtitle">Click Start to configure connection</p>
+        <div id="scene-name" style="display: none;"></div>
+      </div>
 
-  <!-- Taskbar -->
-  <div id="taskbar" class="taskbar" role="toolbar" aria-label="Taskbar">
-    <div class="taskbar-left">
-      <button id="start-btn" class="start-btn" aria-haspopup="true" aria-expanded="false">⊞</button>
-      <div id="taskbar-tabs" class="taskbar-tabs" role="tablist" aria-label="Windows"></div>
+      <!-- Start Menu -->
+      <div id="start-menu">
+        <!-- Settings Panel -->
+        <div id="settings-panel">
+          <h3>OBS WebSocket Settings</h3>
+          
+          <div class="input-group">
+            <label>WebSocket Address</label>
+            <input type="text" id="ws-address" value="ws://localhost:4455" placeholder="ws://localhost:4455">
+          </div>
+
+          <div class="input-group">
+            <label>Password (optional)</label>
+            <input type="password" id="ws-password" placeholder="Leave empty if no password">
+          </div>
+
+          <div id="connection-error"></div>
+
+          <div class="button-group">
+            <button class="btn-primary" id="connect-btn">Loading...</button>
+            <button class="btn-secondary" id="cancel-settings-btn">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Sources Panel -->
+        <div id="sources-panel">
+          <button class="add-window-btn" id="add-window-btn" style="display: none;">
+            <span style="font-size: 20px;">+</span>
+            Add Window from Source
+          </button>
+
+          <div id="sources-header" style="display: none;">
+            <h3 id="sources-title">Select a Source</h3>
+            <button id="back-btn" style="padding: 6px 12px; background-color: transparent; color: #0078D4; border: 1px solid #0078D4; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: inherit;">← Back</button>
+          </div>
+
+          <div id="sources-list">
+            <div id="empty-state">
+              <p id="empty-message">Not connected to OBS Studio</p>
+              <button class="btn-primary" id="configure-btn" style="margin-top: 15px;">Configure Connection</button>
+            </div>
+          </div>
+
+          <div id="sources-footer" style="display: none;">
+            <button class="btn-footer" id="settings-btn">⚙️ Settings</button>
+            <button class="btn-danger" id="disconnect-btn">Disconnect</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="menu-overlay"></div>
     </div>
-    <div class="taskbar-right">
-      <!-- OBS status button: left of clock -->
-      <button id="obs-status-btn" class="obs-status" title="OBS: Disconnected">
-        <span id="obs-dot" class="obs-dot" aria-hidden="true"></span>
-        <span class="obs-label">OBS</span>
+
+    <!-- Taskbar -->
+    <div id="taskbar">
+      <button id="start-button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" fill="currentColor" />
+        </svg>
+        Start
       </button>
-      <div class="taskbar-datetime">
-        <span id="taskbar-date">--/--/----</span>
-        <span id="taskbar-clock">--:--</span>
-      </div>
-    </div>
-  </div>
 
-  <!-- Start Menu -->
-  <div id="start-menu" class="start-menu" hidden>
-    <div class="start-menu-body">
-      <button id="start-new-source" class="menu-item">Add Source Window…</button>      
-    </div>
-  </div>
+      <div id="window-tabs"></div>
 
-  <!-- Window template -->
-  <template id="window-template">
-    <div class="win" role="dialog" aria-modal="false">
-      <div class="win-titlebar">
-        <span class="win-icon">🗔</span>
-        <span class="win-caption">Window</span>
-        <div class="win-controls">
-          <button class="win-min" title="Minimize">🗕</button>
-          <button class="win-max" title="Maximize">🗖</button>
-          <button class="win-close" title="Close">🗙</button>
+      <div id="system-tray">
+        <div class="status-dot"></div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+          <div id="clock-time"></div>
+          <div id="clock-date"></div>
         </div>
       </div>
-      <div class="win-content"></div>
-      <div class="win-resizer" title="Resize"></div>
-    </div>
-  </template>
-
-  <!-- OBS Settings Panel (tabbed) -->
-  <div id="obs-settings" class="hidden">
-    <div class="obs-tabs-wrapper">
-      <!-- CONTENT: Settings -->
-    
-      <div id="obs-tabpane-settings" class="obs-tabpane active">
-        <form id="obs-connect-form" class="form-grid" autocomplete="off">
-          <h3>OBS WebSocket</h3>
-          <label>Port
-            <input type="number" id="obs-port" placeholder="4455" value="4455" />
-          </label>
-          <label>Password
-            <input type="password" id="obs-pass" placeholder="Leave empty if none" />
-          </label>
-          <div class="row">
-            <button type="submit" class="btn primary">Connect</button>
-            <button type="button" id="obs-disconnect" class="btn">Disconnect</button>
-            <button type="button" id="obs-reset-sources" class="btn danger">Reset Source Windows</button>
-          </div>
-          <div id="obs-status" class="status">Disconnected</div>
-          <p class="hint">
-            Host is fixed to <code>127.0.0.1</code>. Match port/password in
-            <strong>OBS → Tools → WebSocket Server Settings</strong>.
-          </p>
-        </form>
-      </div>
-
-      <!-- CONTENT: Debug -->
-      <div id="obs-tabpane-debug" class="obs-tabpane">
-        <div class="debug-grid">
-          <div class="debug-kv">
-            <div><strong>Status:</strong> <span id="dbg-status">—</span></div>
-            <div><strong>OBS Base:</strong> <span id="dbg-base">—</span></div>
-            <div><strong>Viewport:</strong> <span id="dbg-view">—</span></div>
-            <div><strong>Active Scene:</strong> <span id="dbg-scene">—</span></div>
-          </div>
-          <div class="debug-windows">
-            <h4>Windows</h4>
-            <div id="dbg-windows-list" class="dbg-list"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB STRIP (bottom right) -->
-      <div class="obs-tabbar">
-        <button id="obs-tab-settings" class="obs-tabbtn active">Settings</button>
-        <button id="obs-tab-debug" class="obs-tabbtn">Debug</button>
-      </div>
     </div>
   </div>
 
-  <!-- Source Catalog Dialog (scene-only) -->
-  <div id="source-dialog" class="hidden">
-    <div class="source-header">
-      <div class="source-title">Scene Sources</div>
-      <div class="source-actions">
-        <input id="source-custom-title" class="title-input" placeholder="Custom title (optional)" />
-        <button id="source-refresh" class="btn">Refresh</button>
-      </div>
-    </div>
-    <div id="source-hint" class="hint">Connect to OBS to list scene sources.</div>
-    <div id="source-grid" class="source-grid"></div>
-    <div class="source-footer">
-      <button id="source-create" class="btn primary" disabled>Create</button>
-      <button id="source-cancel" class="btn">Cancel</button>
-    </div>
-  </div>
-
-  <script type="module" src="./main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js@5.0.3/dist/obs-ws.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
