@@ -1,42 +1,46 @@
 // State
-let obs = null;
-let connected = false;
-let currentScene = '';
 let sources = [];
-let libraryLoaded = false;
-let showingSourcesList = false;
 let windows = [];
-let windowCounter = 0;
+
+let obs = null;
 let activeWindow = null;
 let syncInterval = null;
+
+let connected = false;
+let libraryLoaded = false;
+let showingSourcesList = false;
+
+let windowCounter = 0;
+let currentScene = '';
+
 const TITLEBAR_HEIGHT = 32; // Height of window titlebar
 
 // Elements
-const startButton = document.getElementById('start-button');
-const startMenu = document.getElementById('start-menu');
-const menuOverlay = document.getElementById('menu-overlay');
-const settingsPanel = document.getElementById('settings-panel');
-const sourcesPanel = document.getElementById('sources-panel');
-const statusDisplay = document.getElementById('status-display');
-const statusIcon = document.getElementById('status-icon');
-const statusTitle = document.getElementById('status-title');
-const statusSubtitle = document.getElementById('status-subtitle');
-const sceneName = document.getElementById('scene-name');
-const connectionStatus = document.querySelector('.status-dot');
-const connectBtn = document.getElementById('connect-btn');
-const wsAddress = document.getElementById('ws-address');
-const wsPassword = document.getElementById('ws-password');
-const connectionError = document.getElementById('connection-error');
-const sourcesTitle = document.getElementById('sources-title');
-const sourcesList = document.getElementById('sources-list');
-const emptyState = document.getElementById('empty-state');
-const emptyMessage = document.getElementById('empty-message');
-const sourcesFooter = document.getElementById('sources-footer');
-const addWindowBtn = document.getElementById('add-window-btn');
-const sourcesHeader = document.getElementById('sources-header');
-const backBtn = document.getElementById('back-btn');
-const mainContent = document.getElementById('main-content');
-const windowTabs = document.getElementById('window-tabs');
+const startButton         = document.getElementById('start-button');
+const startMenu           = document.getElementById('start-menu');
+const menuOverlay         = document.getElementById('menu-overlay');
+const settingsPanel       = document.getElementById('settings-panel');
+const sourcesPanel        = document.getElementById('sources-panel');
+const statusDisplay       = document.getElementById('status-display');
+const statusIcon          = document.getElementById('status-icon');
+const statusTitle         = document.getElementById('status-title');
+const statusSubtitle      = document.getElementById('status-subtitle');
+const sceneName           = document.getElementById('scene-name');
+const connectionStatus    = document.querySelector('.status-dot');
+const connectBtn          = document.getElementById('connect-btn');
+const wsAddress           = document.getElementById('ws-address');
+const wsPassword          = document.getElementById('ws-password');
+const connectionError     = document.getElementById('connection-error');
+const sourcesTitle        = document.getElementById('sources-title');
+const sourcesList         = document.getElementById('sources-list');
+const emptyState          = document.getElementById('empty-state');
+const emptyMessage        = document.getElementById('empty-message');
+const sourcesFooter       = document.getElementById('sources-footer');
+const addWindowBtn        = document.getElementById('add-window-btn');
+const sourcesHeader       = document.getElementById('sources-header');
+const backBtn             = document.getElementById('back-btn');
+const mainContent         = document.getElementById('main-content');
+const windowTabs          = document.getElementById('window-tabs');
 
 // Calculate GCD for grid sizing
 function gcd(a, b) {
@@ -930,15 +934,15 @@ function hideError() {
 }
 
 // Event Listeners
-startButton.addEventListener('click', toggleStartMenu);
-menuOverlay.addEventListener('click', closeStartMenu);
-connectBtn.addEventListener('click', connectToOBS);
-document.getElementById('cancel-settings-btn').addEventListener('click', showSourcesPanel);
-document.getElementById('configure-btn')?.addEventListener('click', showSettingsPanel);
-document.getElementById('settings-btn').addEventListener('click', showSettingsPanel);
-document.getElementById('disconnect-btn').addEventListener('click', disconnect);
-addWindowBtn.addEventListener('click', showSourcesList);
-backBtn.addEventListener('click', hideSourcesList);
+startButton.addEventListener  ('click', toggleStartMenu);
+menuOverlay.addEventListener  ('click', closeStartMenu);
+connectBtn.addEventListener   ('click', connectToOBS);
+document.getElementById       ('cancel-settings-btn').addEventListener('click', showSourcesPanel);
+document.getElementById       ('configure-btn')?.addEventListener('click', showSettingsPanel);
+document.getElementById       ('settings-btn').addEventListener('click', showSettingsPanel);
+document.getElementById       ('disconnect-btn').addEventListener('click', disconnect);
+addWindowBtn.addEventListener ('click', showSourcesList);
+backBtn.addEventListener      ('click', hideSourcesList);
 
 // Allow Enter key to connect
 wsPassword.addEventListener('keypress', (e) => {
