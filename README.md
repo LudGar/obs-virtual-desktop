@@ -267,33 +267,7 @@ Modify window appearance in `styles.css`:
 - Check for browser zoom (should be 100%)
 - Verify no custom CSS is interfering
 
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these guidelines:
-
-1. **Fork the repository**
-2. **Create a feature branch** (`git checkout -b feature/AmazingFeature`)
-3. **Commit your changes** (`git commit -m 'Add some AmazingFeature'`)
-4. **Push to the branch** (`git push origin feature/AmazingFeature`)
-5. **Open a Pull Request**
-
-### Development Setup
-
-```bash
-# Clone your fork
-git clone https://github.com/yourusername/obs-taskbar-control.git
-
-# Create a branch
-git checkout -b feature/my-feature
-
-# Make changes and test locally
-# Open index.html in browser with OBS running
-
-# Commit and push
-git add .
-git commit -m "Description of changes"
-git push origin feature/my-feature
-```
+---
 
 ## 📝 License
 
@@ -304,10 +278,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **OBS Studio** - For the amazing streaming software
 - **obs-websocket-js** - JavaScript library for OBS WebSocket API
 - Inspired by Windows taskbar design
-
-## 📧 Contact
-
-Project Link: [https://github.com/yourusername/obs-taskbar-control](https://github.com/yourusername/obs-taskbar-control)
 
 ---
 
