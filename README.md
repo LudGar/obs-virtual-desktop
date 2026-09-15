@@ -31,6 +31,84 @@ A powerful Windows-inspired taskbar interface for managing OBS Studio sources in
 - **Source Properties** - Reads and updates position, size, and layer index
 - **Multi-Source Support** - Manage unlimited sources simultaneously
 
+## 🧩 Erweiterungen (`features.js`)
+
+Liegt neben `script.js` und hängt sich an dessen Funktionen an, statt sie zu ersetzen.
+Datei entfernen und die Zeile aus `index.html` löschen — das Tool verhält sich wieder
+wie vorher.
+
+**Verbindung merken.** Nach einer erfolgreichen Verbindung werden Adresse und
+Einstellungen im `localStorage` abgelegt; beim nächsten Start verbindet sich das Tool
+von allein. Zwei Häkchen im Verbindungsfenster steuern das. Das Passwort wird nur
+gespeichert, wenn du es ausdrücklich erlaubst — im Klartext, wie bei allem im
+localStorage. Für ein OBS im eigenen Netz ist das vertretbar, nur wissen solltest du es.
+
+**Rechtsklick.** Auf einem Fenster oder seinem Tab öffnet die rechte Maustaste ein
+kleines Menü: in den Vordergrund, minimieren, schließen. Absichtlich kein sofortiges
+Schließen beim Rechtsklick — beim Schieben von Fenstern verklickt man sich zu leicht.
+
+**Fenster ohne Quelle.** Lage und Größe jedes Fensters werden alle zwei Sekunden
+gesichert. Quellen, die gerade nicht in der Szene liegen, erscheinen im Startmenü unter
+*Zuletzt bekannt* und lassen sich trotzdem öffnen — gestrichelt umrandet, mit der zuletzt
+gesehenen Position und Größe, ohne Verbindung zu OBS. Taucht die Quelle wieder auf,
+koppelt sich das Fenster automatisch an und OBS übernimmt wieder die Hoheit.
+
+Das funktioniert auch ganz ohne OBS: Startmenü öffnen, Fenster aus *Zuletzt bekannt*
+setzen, Layout ansehen.
+
+In der Konsole gibt es `taskbarSpeicher.lesen()`, `.vergessen("Quellenname")` und
+`.leeren()`.
+
+
+### Apps im Startmenü
+
+Oben im Startmenü sitzt eine Leiste für eigene Werkzeuge. Erster Eintrag ist die
+**Progress Bar** — das Neo HUD aus dem Nachbarrepo
+(<https://ludgar.github.io/fullscreen-progress-bar/>), das sich vollständig über
+URL-Parameter steuern lässt.
+
+Weil die Taskbar ohnehin am OBS-WebSocket hängt, stellt sie nicht nur die Adresse
+zusammen, sondern schreibt sie auf Wunsch direkt in eine Browserquelle in OBS und löst
+dort ein Neuladen aus. Countdown einstellen, *An Quelle senden*, fertig — OBS selbst
+muss nicht angefasst werden.
+
+- **Countdown** mit Start und Ende, dazu Schnellknöpfe für „jetzt“ und +15/30/60 Minuten
+- **Dauer** in Sekunden mit den üblichen Stufen
+- **Manuell** mit Regler und den chaotischen Sprüngen
+- Fünf Farben, wie im HUD selbst
+- *Vorschau als Fenster* bettet das HUD als Fenster in die Taskbar ein; es ist nur
+  Vorschau, Klicks gehen an das Fenster, nicht an das HUD
+- Die Basis-Adresse lässt sich ändern, falls du eine eigene Kopie betreibst
+
+Gefundene Browserquellen holt die Liste über `GetInputList`; das Senden läuft über
+`SetInputSettings`, das Neuladen über `PressInputPropertiesButton`. Ältere
+OBS-Versionen ohne diesen Knopf laden beim Setzen der URL ohnehin neu.
+
+
+## 🎨 Theme
+
+Das Erscheinungsbild steckt vollständig in CSS-Tokens am Kopf von `styles.css`.
+Farben, Schriften und Rundungen stehen dort als Variablen; wer den Look ändern will,
+fasst nur diesen Block an.
+
+```css
+:root{
+  --ci:      #00669c;   /* Akzent */
+  --leiste:  #10151a;   /* Taskleiste */
+  --schrift: "Space Grotesk", ...;
+}
+```
+
+Space Grotesk und Space Mono liegen als Latin-Subset in `fonts.css` eingebettet, damit
+die Seite auch als lokale Browserquelle ohne Netz richtig aussieht. Beide stehen unter
+der SIL Open Font License 1.1. Zahlen — Uhr, Maße, Quellentypen — laufen in Space Mono,
+damit sie beim Zählen nicht springen.
+
+Unterhalb des Grundstils folgt ein Abschnitt mit den Eigenheiten des Looks: Eckwinkel am
+aktiven Fenster, Akzentkanten an Startknopf und Tabs, Schraffur im Fensterinhalt. Der
+Block lässt sich am Stück entfernen, ohne dass die Funktion leidet.
+
+
 ## 🚀 Getting Started
 
 ### Prerequisites
