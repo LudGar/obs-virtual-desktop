@@ -661,7 +661,7 @@ async function syncWindowPositionToOBS(windowId) {
     const dimensionsEl = windowObj.element.querySelector('.window-dimensions');
     const originalText = dimensionsEl.textContent;
     dimensionsEl.textContent = '↻ Syncing...';
-    dimensionsEl.style.color = '#0078D4';
+    dimensionsEl.style.color = 'var(--ci-hell)';
     
     // Get current transform from OBS
     const transform = await obs.call('GetSceneItemTransform', {
@@ -693,7 +693,7 @@ async function syncWindowPositionToOBS(windowId) {
     
     // Show success briefly
     dimensionsEl.textContent = '✓ Synced';
-    dimensionsEl.style.color = '#4CAF50';
+    dimensionsEl.style.color = 'var(--gut)';
     
     setTimeout(() => {
       dimensionsEl.textContent = originalText;
@@ -706,7 +706,7 @@ async function syncWindowPositionToOBS(windowId) {
     // Show error
     const dimensionsEl = windowObj.element.querySelector('.window-dimensions');
     dimensionsEl.textContent = '✕ Sync failed';
-    dimensionsEl.style.color = '#ff4444';
+    dimensionsEl.style.color = 'var(--warn)';
     
     setTimeout(() => {
       const width = parseInt(windowObj.element.style.width);
