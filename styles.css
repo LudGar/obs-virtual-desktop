@@ -1,3 +1,47 @@
+/* ------------------------------------------------------------------
+   OBS Studio Taskbar Control — LUDGAR
+   Farben, Schriften und Rundungen stehen als Tokens hier oben.
+   Einmal ändern reicht, der Rest zieht nach.
+------------------------------------------------------------------ */
+
+:root{
+  /* Marke */
+  --ci:           #00669c;
+  --ci-hell:      #2b9fd6;
+  --ci-dunkel:    #004a72;
+  --anthrazit:    #4d4d4d;
+
+  /* Flächen */
+  --leiste:       #10151a;
+  --fenster:      #151b21;
+  --flaeche:      #1b232b;
+  --flaeche-hell: #26323c;
+  --flaeche-hoch: rgba(16, 21, 26, .94);
+  --tief:         #0d1116;
+
+  /* Linien */
+  --linie:          rgba(255, 255, 255, .09);
+  --linie-fein:     rgba(255, 255, 255, .05);
+  --linie-kraeftig: rgba(255, 255, 255, .18);
+  --raster:         rgba(0, 102, 156, .16);
+
+  /* Schrift */
+  --schrift:      "Space Grotesk", "Segoe UI", Tahoma, sans-serif;
+  --schrift-zahl: "Space Mono", Consolas, monospace;
+  --text:         #e6edf3;
+  --text-schwach: #8da2b2;
+  --text-still:   #5b6b78;
+
+  /* Zustände */
+  --gut:       #3fb950;
+  --warn:      #e0736b;
+  --warn-tief: #a33c34;
+
+  /* Form — kantig, passend zur Wortmarke */
+  --radius:       3px;
+  --radius-gross: 4px;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -8,7 +52,7 @@ body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--schrift);
   background-color: transparent;
 }
 
@@ -25,15 +69,15 @@ body {
   background-image: 
     repeating-linear-gradient(
       0deg,
-      rgba(255, 255, 255, 0.08) 0px,
-      rgba(255, 255, 255, 0.08) 2px,
+      var(--raster) 0px,
+      var(--raster) 2px,
       transparent 2px,
       transparent 100px
     ),
     repeating-linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0.08) 0px,
-      rgba(255, 255, 255, 0.08) 2px,
+      var(--raster) 0px,
+      var(--raster) 2px,
       transparent 2px,
       transparent 100px
     );
@@ -46,12 +90,12 @@ body {
 
 #status-display {
   text-align: center;
-  color: #fff;
+  color: var(--text);
   padding: 40px;
-  background-color: rgba(30, 30, 30, 0.95);
-  border-radius: 12px;
+  background-color: var(--flaeche-hoch);
+  border-radius: var(--radius-gross);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--linie);
 }
 
 #status-icon {
@@ -77,20 +121,20 @@ body {
 }
 
 #scene-name {
-  color: #4CAF50;
+  color: var(--gut);
   margin: 0 0 10px 0;
   font-size: 18px;
 }
 
 #status-display p {
-  color: #888;
+  color: var(--text-schwach);
   margin: 0;
 }
 
 #taskbar {
   height: 48px;
-  background-color: #1f1f1f;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  background-color: var(--leiste);
+  border-top: 1px solid var(--linie);
   display: flex;
   align-items: center;
   padding: 0 8px;
@@ -104,8 +148,8 @@ body {
   padding: 0 16px;
   background-color: transparent;
   border: none;
-  border-radius: 4px;
-  color: #fff;
+  border-radius: var(--radius);
+  color: var(--text);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -116,15 +160,15 @@ body {
 }
 
 #start-button:hover {
-  background-color: #2d2d2d;
+  background-color: var(--flaeche);
 }
 
 #start-button.active {
-  background-color: #3d3d3d;
+  background-color: var(--flaeche-hell);
 }
 
 #start-button.active:hover {
-  background-color: #3d3d3d;
+  background-color: var(--flaeche-hell);
 }
 
 #window-tabs {
@@ -144,10 +188,10 @@ body {
   min-width: 160px;
   max-width: 200px;
   padding: 0 12px;
-  background-color: #2d2d2d;
+  background-color: var(--flaeche);
   border: none;
-  border-radius: 4px;
-  color: #fff;
+  border-radius: var(--radius);
+  color: var(--text);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -158,16 +202,16 @@ body {
 }
 
 .window-tab:hover {
-  background-color: #3d3d3d;
+  background-color: var(--flaeche-hell);
 }
 
 .window-tab.active {
-  background-color: #0078D4;
+  background-color: var(--ci);
 }
 
 .window-tab.minimized {
-  background-color: #1a1a1a;
-  border: 1px solid #444;
+  background-color: var(--tief);
+  border: 1px solid var(--linie-kraeftig);
 }
 
 .window-tab-icon {
@@ -186,12 +230,12 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #666;
+  background-color: var(--text-still);
   flex-shrink: 0;
 }
 
 .status-dot.connected {
-  background-color: #4CAF50;
+  background-color: var(--gut);
 }
 
 #system-tray {
@@ -204,14 +248,14 @@ body {
 
 #clock-time {
   font-size: 13px;
-  color: #fff;
+  color: var(--text);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
 
 #clock-date {
   font-size: 11px;
-  color: #aaa;
+  color: var(--text-schwach);
   line-height: 1.2;
 }
 
@@ -221,11 +265,11 @@ body {
   left: 8px;
   width: 380px;
   max-height: 600px;
-  background-color: #2d2d2d;
+  background-color: var(--flaeche);
   backdrop-filter: blur(20px);
-  border-radius: 8px;
+  border-radius: var(--radius-gross);
   box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid var(--linie);
   overflow: hidden;
   z-index: 1000;
   display: none;
@@ -277,7 +321,7 @@ body {
 
 #settings-panel h3 {
   margin: 0 0 15px 0;
-  color: #fff;
+  color: var(--text);
   font-size: 16px;
   font-weight: 500;
 }
@@ -288,7 +332,7 @@ body {
 
 .input-group label {
   display: block;
-  color: #aaa;
+  color: var(--text-schwach);
   font-size: 12px;
   margin-bottom: 5px;
 }
@@ -296,19 +340,19 @@ body {
 .input-group input {
   width: 100%;
   padding: 8px 12px;
-  background-color: #1a1a1a;
-  border: 1px solid #444;
-  border-radius: 4px;
-  color: #fff;
+  background-color: var(--tief);
+  border: 1px solid var(--linie-kraeftig);
+  border-radius: var(--radius);
+  color: var(--text);
   font-size: 14px;
   font-family: inherit;
 }
 
 #connection-error {
   padding: 10px;
-  background-color: #ff4444;
-  color: #fff;
-  border-radius: 4px;
+  background-color: var(--warn);
+  color: var(--text);
+  border-radius: var(--radius);
   font-size: 12px;
   margin-bottom: 15px;
   display: none;
@@ -326,10 +370,10 @@ body {
 .btn-primary {
   flex: 1;
   padding: 10px;
-  background-color: #0078D4;
-  color: #fff;
+  background-color: var(--ci);
+  color: var(--text);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -337,17 +381,17 @@ body {
 }
 
 .btn-primary:disabled {
-  background-color: #555;
+  background-color: var(--text-still);
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .btn-secondary {
   padding: 10px 20px;
-  background-color: #444;
-  color: #fff;
+  background-color: var(--linie-kraeftig);
+  color: var(--text);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius);
   cursor: pointer;
   font-size: 14px;
   font-family: inherit;
@@ -356,10 +400,10 @@ body {
 .btn-danger {
   flex: 1;
   padding: 8px;
-  background-color: #d32f2f;
-  color: #fff;
+  background-color: var(--warn-tief);
+  color: var(--text);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius);
   cursor: pointer;
   font-size: 13px;
   font-family: inherit;
@@ -367,7 +411,7 @@ body {
 
 #sources-header {
   padding: 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid var(--linie);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -375,7 +419,7 @@ body {
 
 #sources-header h3 {
   margin: 0;
-  color: #fff;
+  color: var(--text);
   font-size: 16px;
   font-weight: 500;
 }
@@ -387,7 +431,7 @@ body {
 
 .source-item {
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--linie-fein);
   cursor: pointer;
   transition: background-color 0.15s;
   display: flex;
@@ -400,24 +444,24 @@ body {
 }
 
 .source-item:hover {
-  background-color: #3d3d3d;
+  background-color: var(--flaeche-hell);
 }
 
 .source-checkbox {
   width: 18px;
   height: 18px;
   border-radius: 3px;
-  background-color: #666;
+  background-color: var(--text-still);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--text);
   font-size: 12px;
   flex-shrink: 0;
 }
 
 .source-checkbox.enabled {
-  background-color: #4CAF50;
+  background-color: var(--gut);
 }
 
 .source-info {
@@ -426,7 +470,7 @@ body {
 }
 
 .source-name {
-  color: #fff;
+  color: var(--text);
   font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -434,7 +478,7 @@ body {
 }
 
 .source-type {
-  color: #888;
+  color: var(--text-schwach);
   font-size: 11px;
   margin-top: 2px;
 }
@@ -442,12 +486,12 @@ body {
 #empty-state {
   padding: 40px 20px;
   text-align: center;
-  color: #888;
+  color: var(--text-schwach);
 }
 
 #sources-footer {
   padding: 12px 16px;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid var(--linie);
   display: flex;
   gap: 8px;
 }
@@ -455,10 +499,10 @@ body {
 .btn-footer {
   flex: 1;
   padding: 8px;
-  background-color: #444;
-  color: #fff;
+  background-color: var(--linie-kraeftig);
+  color: var(--text);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius);
   cursor: pointer;
   font-size: 13px;
   font-family: inherit;
@@ -467,10 +511,10 @@ body {
 .add-window-btn {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #0078D4 0%, #005a9e 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--ci) 0%, var(--ci-dunkel) 100%);
+  color: var(--text);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-gross);
   cursor: pointer;
   font-size: 15px;
   font-weight: 500;
@@ -484,9 +528,9 @@ body {
 }
 
 .add-window-btn:hover {
-  background: linear-gradient(135deg, #006cbd 0%, #004578 100%);
+  background: linear-gradient(135deg, var(--ci-hell) 0%, var(--ci-dunkel) 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 102, 156, .35);
 }
 
 .add-window-btn:active {
@@ -501,7 +545,7 @@ body {
   content: '→';
   position: absolute;
   right: 16px;
-  color: #0078D4;
+  color: var(--ci);
   font-size: 18px;
   opacity: 0;
   transition: opacity 0.2s;
@@ -514,9 +558,9 @@ body {
 /* Fake Windows */
 .fake-window {
   position: absolute;
-  background-color: #1e1e1e;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  background-color: var(--fenster);
+  border: 1px solid var(--linie-kraeftig);
+  border-radius: var(--radius-gross);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   display: flex;
@@ -530,8 +574,8 @@ body {
 
 .window-titlebar {
   height: 32px;
-  background-color: #2d2d2d;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--flaeche);
+  border-bottom: 1px solid var(--linie);
   display: flex;
   align-items: center;
   padding: 0 12px;
@@ -552,7 +596,7 @@ body {
 
 .window-title {
   flex: 1;
-  color: #fff;
+  color: var(--text);
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -571,25 +615,25 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #aaa;
+  color: var(--text-schwach);
   transition: color 0.15s;
 }
 
 .window-control-btn:hover {
-  color: #fff;
+  color: var(--text);
 }
 
 .window-control-btn.close:hover {
-  color: #ff4444;
+  color: var(--warn);
 }
 
 .window-content {
   flex: 1;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  background: linear-gradient(135deg, var(--tief) 0%, var(--flaeche) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #888;
+  color: var(--text-schwach);
   font-size: 14px;
   position: relative;
   overflow: hidden;
@@ -601,8 +645,378 @@ body {
   right: 8px;
   background-color: rgba(0, 0, 0, 0.7);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 11px;
-  color: #aaa;
+  color: var(--text-schwach);
   font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------
+   LUDGAR — die Eigenheiten des Looks
+   Alles darunter ist neu und lässt sich am Stück entfernen,
+   ohne dass die Grundfunktion leidet.
+------------------------------------------------------------------ */
+
+/* Ziffern laufen in Space Mono, damit sie beim Zählen nicht springen */
+#clock-time,
+#clock-date,
+.window-dimensions,
+.source-type {
+  font-family: var(--schrift-zahl);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+
+/* Rubriken in gesperrten Versalien wie die Kicker in den Panels */
+#settings-panel h3,
+#sources-header h3,
+.input-group label {
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-family: var(--schrift-zahl);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ci-hell);
+}
+
+#sources-header h3 { color: var(--text); font-size: 12px; }
+
+/* Startknopf bekommt die Akzentkante */
+#start-button {
+  border-left: 2px solid transparent;
+  letter-spacing: .04em;
+}
+#start-button:hover { border-left-color: var(--ci); }
+#start-button.active {
+  background-color: var(--ci);
+  border-left-color: var(--ci-hell);
+}
+
+/* Aktiver Tab: kein Vollton, sondern Kante plus Fläche */
+.window-tab {
+  border-left: 2px solid transparent;
+  transition: background-color .15s, border-color .15s;
+}
+.window-tab.active {
+  background-color: var(--flaeche-hell);
+  border-left-color: var(--ci-hell);
+}
+.window-tab.minimized {
+  border: 1px solid var(--linie);
+  border-left: 2px solid var(--text-still);
+}
+
+/* Leiste bekommt oben eine feine Akzentlinie */
+#taskbar {
+  border-top: 1px solid var(--linie);
+  box-shadow: inset 0 2px 0 -1px var(--ci);
+}
+
+/* Fenster: Eckwinkel wie im Spielmenü, nur auf dem aktiven */
+.fake-window {
+  border-color: var(--linie);
+  box-shadow: 0 10px 40px rgba(0,0,0,.55);
+}
+.fake-window.active {
+  border-color: rgba(0, 102, 156, .55);
+  box-shadow: 0 12px 44px rgba(0,0,0,.6), 0 0 0 1px rgba(0, 102, 156, .35);
+}
+.fake-window.active .window-titlebar {
+  box-shadow: inset 0 2px 0 -1px var(--ci-hell);
+}
+.fake-window.active::before,
+.fake-window.active::after {
+  content: '';
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+  z-index: 3;
+}
+.fake-window.active::before {
+  top: 5px; left: 5px;
+  border-top: 2px solid var(--ci-hell);
+  border-left: 2px solid var(--ci-hell);
+}
+.fake-window.active::after {
+  bottom: 5px; right: 5px;
+  border-bottom: 2px solid var(--ci-hell);
+  border-right: 2px solid var(--ci-hell);
+}
+
+/* Fensterinhalt: dieselbe Schraffur wie auf den Panels */
+.window-content {
+  background:
+    repeating-linear-gradient(135deg,
+      rgba(255,255,255,.028) 0 1px,
+      transparent 1px 9px),
+    linear-gradient(135deg, var(--tief) 0%, var(--flaeche) 100%);
+}
+
+.window-title {
+  letter-spacing: .02em;
+}
+
+.window-dimensions {
+  background-color: rgba(13, 17, 22, .8);
+  border: 1px solid var(--linie);
+  color: var(--ci-hell);
+}
+
+/* Statusanzeige in der Mitte */
+#status-display {
+  border: 1px solid var(--linie);
+  border-top: 2px solid var(--ci);
+}
+#scene-name {
+  font-family: var(--schrift-zahl);
+  letter-spacing: .06em;
+}
+
+/* Quellenliste: Pfeil in Akzent, Haken in Grün */
+.source-item.clickable::after { color: var(--ci-hell); }
+
+/* Startmenü sitzt auf einer Akzentkante */
+#start-menu {
+  border: 1px solid var(--linie);
+  border-top: 2px solid var(--ci);
+}
+
+/* Der große Knopf bleibt der einzige Vollton */
+.add-window-btn {
+  background: linear-gradient(135deg, var(--ci) 0%, var(--ci-dunkel) 100%);
+  letter-spacing: .03em;
+}
+
+/* Zurück-Knopf — vorher steckte der Stil inline im HTML */
+#back-btn {
+  padding: 6px 12px;
+  background-color: transparent;
+  color: var(--ci-hell);
+  border: 1px solid var(--ci);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  letter-spacing: .03em;
+}
+#back-btn:hover { background-color: var(--ci); color: var(--text); }
+
+/* ------------------------------------------------------------------
+   Erweiterungen aus features.js
+------------------------------------------------------------------ */
+
+/* Häkchen im Verbindungsfenster */
+.merk-optionen { margin: 0 0 15px; display: flex; flex-direction: column; gap: 9px; }
+.merk-schalter {
+  display: flex; align-items: center; gap: 9px;
+  color: var(--text-schwach); font-size: 12.5px; cursor: pointer;
+}
+.merk-schalter input { width: 15px; height: 15px; accent-color: var(--ci); cursor: pointer; }
+.merk-hinweis {
+  margin: 2px 0 0; font-size: 11px; line-height: 1.5;
+  color: var(--text-still);
+}
+
+/* Rechtsklickmenü */
+.kontextmenue {
+  position: fixed;
+  z-index: 3000;
+  min-width: 190px;
+  padding: 4px;
+  background-color: var(--flaeche);
+  border: 1px solid var(--linie);
+  border-top: 2px solid var(--ci);
+  border-radius: var(--radius-gross);
+  box-shadow: 0 10px 34px rgba(0,0,0,.6);
+}
+.kontextmenue button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.kontextmenue button:hover {
+  background-color: var(--flaeche-hell);
+  border-left-color: var(--ci-hell);
+}
+.kontextmenue button.gefahr:hover {
+  background-color: var(--warn-tief);
+  border-left-color: var(--warn);
+}
+.kontext-trenner {
+  height: 1px;
+  margin: 4px 6px;
+  background-color: var(--linie);
+}
+
+/* Fenster ohne lebende Quelle */
+.fake-window.entkoppelt {
+  border: 1px dashed var(--linie-kraeftig);
+  opacity: .82;
+}
+.fake-window.entkoppelt .window-titlebar { background-color: var(--tief); }
+.fake-window.entkoppelt .window-title { color: var(--text-schwach); font-style: italic; }
+.entkoppelt-marke {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 7px;
+  background-color: rgba(13,17,22,.75);
+  border: 1px solid var(--linie-kraeftig);
+  border-radius: var(--radius);
+  font-family: var(--schrift-zahl);
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-schwach);
+}
+
+/* Rubrik in der Quellenliste */
+.quellen-rubrik {
+  padding: 10px 16px 6px;
+  border-top: 1px solid var(--linie);
+  font-family: var(--schrift-zahl);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-still);
+}
+.entkoppelt-eintrag .source-checkbox {
+  background-color: transparent;
+  border: 1px dashed var(--linie-kraeftig);
+  color: var(--text-still);
+}
+.entkoppelt-eintrag .source-name { color: var(--text-schwach); }
+
+/* ------------------------------------------------------------------
+   Apps im Startmenü
+------------------------------------------------------------------ */
+
+#app-leiste { padding-bottom: 4px; }
+.app-kacheln { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 12px; }
+.app-kachel {
+  flex: 1 1 140px;
+  padding: 12px 14px;
+  background-color: var(--flaeche-hell);
+  border: 1px solid var(--linie);
+  border-left: 2px solid var(--ci);
+  border-radius: var(--radius);
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .15s, border-color .15s;
+}
+.app-kachel:hover { background-color: var(--ci-dunkel); border-left-color: var(--ci-hell); }
+
+/* Panel liegt über dem Startmenü */
+#app-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: none;
+  flex-direction: column;
+  background-color: var(--flaeche);
+  border-radius: var(--radius-gross);
+  overflow: hidden;
+}
+#app-panel.offen { display: flex; }
+
+#app-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--linie);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+#app-header h3 {
+  margin: 0;
+  font-family: var(--schrift-zahl);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.app-zurueck {
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid var(--ci);
+  border-radius: var(--radius);
+  color: var(--ci-hell);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.app-zurueck:hover { background-color: var(--ci); color: var(--text); }
+
+#app-body { padding: 16px; overflow-y: auto; }
+#app-body .input-group { margin-bottom: 13px; }
+
+.app-reihe { display: flex; gap: 10px; align-items: flex-end; }
+.app-reihe .input-group { flex: 1; margin-bottom: 13px; }
+
+.app-select,
+#app-body input[type="text"],
+#app-body input[type="number"],
+#app-body input[type="datetime-local"] {
+  width: 100%;
+  padding: 8px 10px;
+  background-color: var(--tief);
+  border: 1px solid var(--linie-kraeftig);
+  border-radius: var(--radius);
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+}
+#app-body input[type="datetime-local"],
+#app-body input[type="number"],
+.app-url { font-family: var(--schrift-zahl); }
+.app-url { font-size: 11.5px; color: var(--ci-hell); }
+
+.app-schnell { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 14px; }
+.app-schnell .btn-footer { flex: 1 1 auto; padding: 7px 10px; font-size: 12px; }
+.app-neuladen { flex: 0 0 auto; margin-bottom: 13px; padding: 9px 12px; }
+
+.app-regler-zeile { display: flex; align-items: center; gap: 10px; }
+.app-regler { flex: 1; accent-color: var(--ci); }
+.app-wert {
+  font-family: var(--schrift-zahl);
+  font-size: 12px;
+  color: var(--ci-hell);
+  min-width: 46px;
+  text-align: right;
+}
+
+#app-body .button-group { margin-top: 12px; }
+
+.app-meldung {
+  margin-top: 12px;
+  min-height: 16px;
+  font-family: var(--schrift-zahl);
+  font-size: 11px;
+  color: var(--gut);
+}
+.app-meldung.schlecht { color: var(--warn); }
+
+/* Vorschaufenster mit eingebettetem HUD */
+.fake-window.app-fenster .window-content { padding: 0; }
+.app-rahmen {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;   /* das Fenster bleibt greifbar, das HUD ist Vorschau */
+  background: #000;
 }
