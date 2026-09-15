@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OBS Studio Taskbar Control</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="fonts.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -50,7 +51,7 @@
 
           <div id="sources-header" style="display: none;">
             <h3 id="sources-title">Select a Source</h3>
-            <button id="back-btn" style="padding: 6px 12px; background-color: transparent; color: #0078D4; border: 1px solid #0078D4; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: inherit;">← Back</button>
+            <button id="back-btn">← Back</button>
           </div>
 
           <div id="sources-list">
@@ -93,5 +94,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js@5.0.3/dist/obs-ws.min.js"></script>
   <script src="script.js"></script>
+  <script src="features.js"></script>
 </body>
 </html>
