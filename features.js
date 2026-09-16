@@ -653,6 +653,7 @@
 
   function transformUebernehmen(w, t) {
     if (!t) return;
+    w.letzteTransform = t;          // gemerkt fürs Schreiben, spart dort eine Abfrage
     const obsX = Math.round(t.positionX);
     const obsY = Math.round(t.positionY);
     const obsBreite = Math.round(t.sourceWidth  * t.scaleX);
@@ -679,7 +680,11 @@
     if (!obs || !connected || !windows.length) return;
     if (syncLaeuft) return;                      // keine zweite Runde vor der Antwort
 
-    const ziele = windows.filter(w => w.sourceData && !w.isDragging && !w.minimized);
+    const jetztMs = performance.now();
+    const ziele = windows.filter(w =>
+      w.sourceData && !w.isDragging && !w.minimized &&
+      !(w.sperreBis && jetztMs < w.sperreBis)     // frisch geschrieben: OBS noch nicht zurückfragen
+    );
     if (!ziele.length) return;
 
     syncLaeuft = true;
@@ -755,12 +760,137 @@
     takt: n => { zielTakt = Math.max(5, Math.min(144, n)); return zielTakt; }
   };
 
+
+  /* ================================================================
+     6. Fenster → Quelle
+
+     Zwei Sachen standen dem im Weg:
+
+     a) Beim Loslassen setzt script.js isDragging sofort auf false und
+        schickt die Position erst danach los. Bis OBS den neuen Wert hat,
+        liest die Leseschleife noch den alten und schiebt das Fenster
+        zurück. Deshalb bekommt jedes Fenster nach dem Schreiben eine
+        kurze Sperre, in der nicht zurückgelesen wird.
+
+     b) Beide Schreibfunktionen holen sich vor dem Setzen erst den
+        aktuellen Transform — zwei Wege über den Socket pro Bewegung,
+        und das alle 16 ms während des Ziehens. Den Transform hat die
+        Leseschleife ohnehin schon; er wird jetzt wiederverwendet.
+  ================================================================ */
+
+  function sperren(id, ms) {
+    const w = windows.find(x => x.id === id);
+    if (w) w.sperreBis = performance.now() + ms;
+    return w;
+  }
+
+  /* Nur die Position schicken.
+
+     script.js las vorher den kompletten Transform aus und schrieb ihn samt
+     bounds und alignment zurück. Steht boundsType auf OBS_BOUNDS_NONE, sind
+     boundsWidth und boundsHeight null — und OBS lehnt genau das ab:
+     "The field value of `boundsWidth` is below the minimum of `1.000000`".
+
+     SetSceneItemTransform nimmt Teilangaben. Wer nur verschiebt, schickt nur
+     positionX und positionY; alles andere bleibt unangetastet. Das umgeht den
+     Fehler und spart nebenbei den Lesevorgang davor. */
+  async function positionSchreiben(windowId, laut) {
+    const w = windows.find(x => x.id === windowId);
+    if (!obs || !connected || !w || !w.sourceData) return;
+
+    const x = parseInt(w.element.style.left, 10);
+    const y = parseInt(w.element.style.top, 10) + TITLEBAR_HEIGHT;
+    if (Number.isNaN(x) || Number.isNaN(y)) return;
+
+    const masse = w.element.querySelector(".window-dimensions");
+    const vorher = masse ? masse.textContent : "";
+    if (laut && masse) {
+      masse.textContent = "↻ Sync …";
+      masse.style.color = "var(--ci-hell)";
+    }
+
+    w.sperreBis = performance.now() + (laut ? 1500 : 400);
+    try {
+      await obs.call("SetSceneItemTransform", {
+        sceneName: currentScene,
+        sceneItemId: w.sourceData.sceneItemId,
+        sceneItemTransform: { positionX: x, positionY: y }
+      });
+
+      if (w.letzteTransform) {
+        w.letzteTransform.positionX = x;
+        w.letzteTransform.positionY = y;
+      }
+
+      if (laut && masse) {
+        masse.textContent = "✓ Sync";
+        masse.style.color = "var(--gut)";
+        clearTimeout(w.masseTimer);
+        w.masseTimer = setTimeout(() => {
+          masse.textContent = vorher;
+          masse.style.color = "";
+        }, 1000);
+      }
+    } catch (e) {
+      console.warn("Position konnte nicht geschrieben werden:", e.message || e);
+      if (laut && masse) {
+        masse.textContent = "✗ Fehler";
+        masse.style.color = "var(--warn)";
+        clearTimeout(w.masseTimer);
+        w.masseTimer = setTimeout(() => {
+          masse.textContent = vorher;
+          masse.style.color = "";
+        }, 2000);
+      }
+    } finally {
+      w.sperreBis = performance.now() + 400;
+    }
+  }
+
+  window.syncWindowPositionToOBS      = id => positionSchreiben(id, true);
+  window.syncWindowPositionToOBSQuiet = id => positionSchreiben(id, false);
+
+
+  /* ================================================================
+     7. Sparmodus
+
+     window.obsstudio gibt es nur in einer OBS-Browserquelle. Läuft die
+     Seite dort, werden Weichzeichner, Schatten und Übergänge abgeschaltet
+     — CEF rendert oft ohne GPU, und genau diese Effekte kosten dann das
+     Vielfache. Im normalen Browser bleibt alles wie gehabt.
+  ================================================================ */
+
+  function sparmodusSetzen(an) {
+    document.documentElement.classList.toggle("obs-modus", !!an);
+  }
+
+  const inOBS = typeof window.obsstudio !== "undefined";
+  if (daten.sparmodus === undefined) daten.sparmodus = inOBS;
+  sparmodusSetzen(daten.sparmodus);
+
+  function sparmodusSchalter() {
+    const gruppe = document.querySelector(".merk-optionen");
+    if (!gruppe || document.getElementById("sparmodus")) return;
+    gruppe.insertBefore(
+      schalter("sparmodus", "Sparmodus — ohne Weichzeichner und Übergänge", daten.sparmodus,
+        v => { daten.sparmodus = v; sparmodusSetzen(v); sichern(); }),
+      gruppe.querySelector(".merk-hinweis")
+    );
+    if (inOBS) {
+      const h = document.createElement("p");
+      h.className = "merk-hinweis";
+      h.textContent = "Läuft als Browserquelle in OBS erkannt — Sparmodus ist deshalb vorausgewählt.";
+      gruppe.appendChild(h);
+    }
+  }
+
   /* ================================================================
      Start
   ================================================================ */
 
   function start() {
     baueEinstellungen();
+    sparmodusSchalter();
     appLeisteBauen();
     felderFuellen();
     automatischVerbinden();

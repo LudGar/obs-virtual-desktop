@@ -1020,3 +1020,40 @@ body {
   pointer-events: none;   /* das Fenster bleibt greifbar, das HUD ist Vorschau */
   background: #000;
 }
+
+/* ------------------------------------------------------------------
+   Sparmodus für die Browserquelle
+
+   OBS rendert Browserquellen über CEF, oft ohne GPU. Weichzeichner,
+   große Schlagschatten und Übergänge kosten dort ein Vielfaches von
+   dem, was sie im normalen Browser kosten. Läuft die Seite in OBS,
+   setzt features.js die Klasse automatisch.
+------------------------------------------------------------------ */
+
+.obs-modus #taskbar,
+.obs-modus #start-menu {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.obs-modus #taskbar   { background-color: var(--leiste); }
+.obs-modus #start-menu{ background-color: var(--flaeche); }
+
+/* Fenster bewegen sich — dort ist jeder Effekt teuer */
+.obs-modus .fake-window {
+  box-shadow: 0 0 0 1px rgba(0,0,0,.5);
+  transition: none;
+  contain: layout paint style;
+}
+.obs-modus .fake-window.active {
+  box-shadow: 0 0 0 1px rgba(0, 102, 156, .55);
+}
+.obs-modus .window-content {
+  background: linear-gradient(135deg, var(--tief) 0%, var(--flaeche) 100%);
+}
+
+/* Übergänge und Animationen aus */
+.obs-modus * {
+  transition: none !important;
+  animation: none !important;
+}
+.obs-modus #status-dot.connected { opacity: 1; }

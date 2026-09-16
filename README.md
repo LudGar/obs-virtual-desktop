@@ -79,6 +79,27 @@ In der Konsole zeigt `taskbarSync.status()` den tatsächlichen Takt und die Lauf
 einer Runde, `taskbarSync.takt(30)` ändert das Ziel.
 
 
+### Fenster → Quelle
+
+Das Ziehen eines Fensters hat die Quelle nicht zuverlässig mitgenommen. Zwei Gründe:
+
+Beim Loslassen setzt `script.js` `isDragging` sofort auf `false` und schickt die neue
+Position erst danach los. In der Lücke liest die Leseschleife noch den alten Wert aus
+OBS und schiebt das Fenster zurück — je zuverlässiger der Abgleich läuft, desto sicherer
+gewinnt das Zurücklesen. Jedes Fenster bekommt nach einem Schreibvorgang deshalb eine
+kurze Sperre, in der nicht zurückgelesen wird.
+
+Außerdem lasen beide Schreibfunktionen vor dem Setzen erst den kompletten Transform aus
+und schrieben ihn samt `bounds` und `alignment` zurück. Das kostet zwei Wege über den
+Socket pro Bewegung — und scheitert, sobald `boundsType` auf `OBS_BOUNDS_NONE` steht:
+dann sind `boundsWidth` und `boundsHeight` null, und OBS weist das mit *below the
+minimum of 1.000000* zurück.
+
+`SetSceneItemTransform` nimmt Teilangaben. Geschrieben werden jetzt nur `positionX` und
+`positionY`; alles andere bleibt unangetastet. Das umgeht den Fehler und lässt den
+Lesevorgang davor ganz entfallen.
+
+
 ### Apps im Startmenü
 
 Oben im Startmenü sitzt eine Leiste für eigene Werkzeuge. Erster Eintrag ist die
