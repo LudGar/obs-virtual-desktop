@@ -60,6 +60,25 @@ In der Konsole gibt es `taskbarSpeicher.lesen()`, `.vergessen("Quellenname")` un
 `.leeren()`.
 
 
+### Abgleich mit OBS
+
+`features.js` ersetzt `syncWindowsFromOBS` und `startSyncLoop`. Der ursprüngliche Loop
+rief den Abgleich mit 120 Hz auf, ohne die vorige Antwort abzuwarten, und fragte darin
+jedes Fenster einzeln nacheinander ab. Bei fünf Fenstern sind das 600 Anfragen pro
+Sekunde über einen Socket, der das nicht schafft — die Anfragen stauen sich und die
+Fenster hängen der Quelle immer weiter hinterher, am deutlichsten bei einem Move-Filter.
+
+Drei Änderungen:
+
+- **Eine Anfrage für alle Fenster** über `callBatch` statt einer pro Fenster
+- **Keine Überlappung** — die nächste Runde startet erst, wenn die vorige da ist
+- **Takt nach Messung** — Ziel sind 60 Hz, dauert eine Runde länger, wird entsprechend
+  langsamer getaktet statt weiter aufzustauen
+
+In der Konsole zeigt `taskbarSync.status()` den tatsächlichen Takt und die Laufzeit
+einer Runde, `taskbarSync.takt(30)` ändert das Ziel.
+
+
 ### Apps im Startmenü
 
 Oben im Startmenü sitzt eine Leiste für eigene Werkzeuge. Erster Eintrag ist die

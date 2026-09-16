@@ -630,6 +630,131 @@
     ziel.insertBefore(leiste, ziel.firstChild);
   }
 
+
+  /* ================================================================
+     5. Abgleich mit OBS — Takt und Sammelabfrage
+
+     Vorher: der rAF-Loop rief den Abgleich mit 120 Hz auf, ohne auf die
+     vorige Antwort zu warten, und fragte darin jedes Fenster einzeln und
+     nacheinander ab. Bei fünf Fenstern sind das 600 Anfragen pro Sekunde
+     über einen Socket, der das nicht schafft. Die Anfragen stauen sich,
+     die Antworten kommen immer später — genau das Nachhängen, das man bei
+     einem Move-Filter sieht.
+
+     Jetzt: eine Anfrage für alle Fenster auf einmal, erst die nächste wenn
+     die vorige da ist, und der Takt richtet sich nach der gemessenen
+     Laufzeit.
+  ================================================================ */
+
+  let syncLaeuft = false;
+  let letzteDauer = 0;
+  let taktMessung = { zaehler: 0, seit: 0, rate: 0 };
+  let zielTakt = 60;                    // Abfragen pro Sekunde
+
+  function transformUebernehmen(w, t) {
+    if (!t) return;
+    const obsX = Math.round(t.positionX);
+    const obsY = Math.round(t.positionY);
+    const obsBreite = Math.round(t.sourceWidth  * t.scaleX);
+    const obsHoehe  = Math.round(t.sourceHeight * t.scaleY);
+
+    const el = w.element;
+    const x = obsX;
+    const y = obsY - TITLEBAR_HEIGHT;
+
+    if (x !== parseInt(el.style.left, 10))  el.style.left = x + "px";
+    if (y !== parseInt(el.style.top, 10))   el.style.top  = y + "px";
+
+    const breiteJetzt = parseInt(el.style.width, 10);
+    const hoeheJetzt  = parseInt(el.style.height, 10) - TITLEBAR_HEIGHT;
+    if (obsBreite !== breiteJetzt || obsHoehe !== hoeheJetzt) {
+      el.style.width  = obsBreite + "px";
+      el.style.height = (obsHoehe + TITLEBAR_HEIGHT) + "px";
+      const masse = el.querySelector(".window-dimensions");
+      if (masse) masse.textContent = obsBreite + " × " + obsHoehe;
+    }
+  }
+
+  window.syncWindowsFromOBS = async function () {
+    if (!obs || !connected || !windows.length) return;
+    if (syncLaeuft) return;                      // keine zweite Runde vor der Antwort
+
+    const ziele = windows.filter(w => w.sourceData && !w.isDragging && !w.minimized);
+    if (!ziele.length) return;
+
+    syncLaeuft = true;
+    const start = performance.now();
+    try {
+      let transforms;
+
+      if (typeof obs.callBatch === "function") {
+        /* alle Fenster in einem Rutsch — ein Hin und Zurück statt eines pro Fenster */
+        const antwort = await obs.callBatch(ziele.map(w => ({
+          requestType: "GetSceneItemTransform",
+          requestData: { sceneName: currentScene, sceneItemId: w.sourceData.sceneItemId }
+        })));
+        transforms = antwort.map(r =>
+          r && r.responseData ? r.responseData.sceneItemTransform : null);
+      } else {
+        /* ältere Bibliothek: wenigstens nebeneinander statt nacheinander */
+        transforms = await Promise.all(ziele.map(w =>
+          obs.call("GetSceneItemTransform", {
+            sceneName: currentScene,
+            sceneItemId: w.sourceData.sceneItemId
+          }).then(r => r.sceneItemTransform).catch(() => null)
+        ));
+      }
+
+      ziele.forEach((w, i) => transformUebernehmen(w, transforms[i]));
+    } catch (e) {
+      console.debug("Abgleich fehlgeschlagen:", e);
+    } finally {
+      letzteDauer = performance.now() - start;
+      syncLaeuft = false;
+
+      taktMessung.zaehler++;
+      const jetzt = performance.now();
+      if (jetzt - taktMessung.seit >= 1000) {
+        taktMessung.rate = taktMessung.zaehler;
+        taktMessung.zaehler = 0;
+        taktMessung.seit = jetzt;
+      }
+    }
+  };
+
+  window.startSyncLoop = function () {
+    if (syncInterval) return;
+    let zuletzt = 0;
+
+    function schleife(jetzt) {
+      if (!connected) { stopSyncLoop(); return; }
+
+      /* Takt: nie schneller als das Ziel und nie schneller als OBS antwortet.
+         Braucht eine Runde 25 ms, wird eben mit 33 ms getaktet statt mit 8. */
+      const budget = Math.max(1000 / zielTakt, letzteDauer * 1.3);
+      if (jetzt - zuletzt >= budget) {
+        zuletzt = jetzt;
+        syncWindowsFromOBS();
+      }
+      syncInterval = requestAnimationFrame(schleife);
+    }
+
+    syncInterval = requestAnimationFrame(schleife);
+    console.log("Abgleich gestartet — Ziel " + zielTakt + " Hz, Sammelabfrage aktiv");
+  };
+
+  /* Zum Nachsehen in der Konsole, falls es doch mal hakt */
+  window.taskbarSync = {
+    status: () => ({
+      zielTakt,
+      tatsaechlich: taktMessung.rate + " Hz",
+      laufzeit: letzteDauer.toFixed(1) + " ms",
+      fenster: Array.isArray(windows) ? windows.length : 0,
+      sammelabfrage: !!(obs && typeof obs.callBatch === "function")
+    }),
+    takt: n => { zielTakt = Math.max(5, Math.min(144, n)); return zielTakt; }
+  };
+
   /* ================================================================
      Start
   ================================================================ */
