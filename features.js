@@ -19,7 +19,8 @@
 
   const leer = {
     verbindung: null, autoVerbinden: true, passwortMerken: false,
-    geometrie: {}, layout: [], layoutMerken: true
+    geometrie: {}, layout: [], layoutMerken: true,
+    startVerzoegerung: 5, versuche: 8
   };
 
   function laden() {
@@ -59,10 +60,33 @@
         sichern();
       }));
 
+    /* Wartezeit vor dem ersten Versuch */
+    const wf = document.createElement("div");
+    wf.className = "field";
+    const wid = "startverzug";
+    const wl = document.createElement("label");
+    wl.htmlFor = wid;
+    const wout = document.createElement("span");
+    wout.textContent = daten.startVerzoegerung + " s";
+    wl.appendChild(document.createTextNode("Warten vor dem ersten Versuch: "));
+    wl.appendChild(wout);
+    const wr = document.createElement("input");
+    wr.type = "range"; wr.id = wid; wr.min = "0"; wr.max = "30"; wr.step = "1";
+    wr.value = daten.startVerzoegerung;
+    wr.addEventListener("input", () => {
+      daten.startVerzoegerung = +wr.value;
+      wout.textContent = daten.startVerzoegerung + " s";
+      sichern();
+    });
+    wf.appendChild(wl); wf.appendChild(wr);
+    kasten.appendChild(wf);
+
     const hinweis = document.createElement("p");
     hinweis.className = "merk-hinweis";
-    hinweis.textContent = "Adresse und Häkchen liegen im localStorage dieses Browsers. "
-                        + "Das Passwort wird nur gespeichert, wenn du es hier erlaubst.";
+    hinweis.textContent = "Beim Start von OBS ist das Overlay oft eher bereit als der WebSocket. "
+                        + "Scheitert der erste Versuch, wird in wachsenden Abständen nachgefasst. "
+                        + "Adresse und Häkchen liegen im localStorage dieses Browsers; das Passwort "
+                        + "nur, wenn du es hier erlaubst.";
     kasten.appendChild(hinweis);
 
     gruppe.parentNode.insertBefore(kasten, gruppe);
@@ -111,6 +135,10 @@
     warVerbunden = jetzt;
   }, 500);
 
+  /* Beim Hochfahren ist das Overlay schneller da als der WebSocket von OBS.
+     Der erste Versuch läuft deshalb erst nach einer Wartezeit, und schlägt er
+     fehl, wird in wachsenden Abständen nachgefasst — mal braucht OBS fünf
+     Sekunden, mal zwanzig. */
   async function automatischVerbinden() {
     if (!daten.autoVerbinden || !daten.verbindung || !daten.verbindung.adresse) return;
 
@@ -120,16 +148,43 @@
       await new Promise(r => setTimeout(r, 100));
     }
     if (typeof libraryLoaded === "undefined" || !libraryLoaded) return;
-    if (typeof connected !== "undefined" && connected) return;
-    if (vonHandGetrennt) return;
 
     felderFuellen();
-    if (statusSubtitle) statusSubtitle.textContent = "Verbinde mit OBS …";
-    try {
-      await connectToOBS();
-    } catch (e) { /* Fehlermeldung zeigt connectToOBS selbst */ }
 
-    if (typeof connected !== "undefined" && !connected && statusSubtitle) {
+    /* Wartezeit mit sichtbarem Herunterzählen */
+    let rest = Math.max(0, daten.startVerzoegerung);
+    while (rest > 0) {
+      if (connected || vonHandGetrennt) return;
+      if (statusSubtitle) statusSubtitle.textContent = "Verbinde in " + rest + " s …";
+      await new Promise(r => setTimeout(r, 1000));
+      rest--;
+    }
+
+    const maxVersuche = Math.max(1, daten.versuche);
+    for (let versuch = 1; versuch <= maxVersuche; versuch++) {
+      if (connected || vonHandGetrennt) return;
+
+      if (statusSubtitle) {
+        statusSubtitle.textContent = versuch === 1
+          ? "Verbinde mit OBS …"
+          : "Verbinde mit OBS … Versuch " + versuch + " von " + maxVersuche;
+      }
+
+      try { await connectToOBS(); }
+      catch (e) { /* connectToOBS meldet selbst */ }
+
+      if (connected) return;
+
+      /* Abstand wächst: 2, 3, 4 … höchstens 10 Sekunden */
+      const pause = Math.min(10, 1 + versuch);
+      for (let s = pause; s > 0; s--) {
+        if (connected || vonHandGetrennt) return;
+        if (statusSubtitle) statusSubtitle.textContent = "OBS antwortet nicht — neuer Versuch in " + s + " s";
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+
+    if (!connected && statusSubtitle) {
       statusSubtitle.textContent = "Keine Verbindung — über Start einrichten";
     }
   }

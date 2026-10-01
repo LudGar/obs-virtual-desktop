@@ -39,7 +39,11 @@ wie vorher.
 
 **Verbindung merken.** Nach einer erfolgreichen Verbindung werden Adresse und
 Einstellungen im `localStorage` abgelegt; beim nächsten Start verbindet sich das Tool
-von allein. Zwei Häkchen im Verbindungsfenster steuern das. Das Passwort wird nur
+von allein. Beim Hochfahren ist die Browserquelle allerdings meist eher bereit als der
+WebSocket von OBS — deshalb wartet der erste Versuch eine einstellbare Zeit, ab Werk
+fünf Sekunden. Scheitert er trotzdem, wird in wachsenden Abständen nachgefasst, von zwei
+bis zehn Sekunden über acht Versuche. Zusammen deckt das knapp eine Minute ab, in der
+OBS bereit werden darf. Der Verlauf steht in der Statuszeile in der Mitte der Leiste. Zwei Häkchen im Verbindungsfenster steuern das. Das Passwort wird nur
 gespeichert, wenn du es ausdrücklich erlaubst — im Klartext, wie bei allem im
 localStorage. Für ein OBS im eigenen Netz ist das vertretbar, nur wissen solltest du es.
 
