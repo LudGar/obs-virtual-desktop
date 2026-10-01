@@ -60,6 +60,24 @@ In der Konsole gibt es `taskbarSpeicher.lesen()`, `.vergessen("Quellenname")` un
 `.leeren()`.
 
 
+### Fenster beim Start wiederherstellen
+
+Welche Fenster offen sind und in welcher Reihenfolge, wird mitgeschrieben. Nach dem
+automatischen Verbinden baut das Tool dieselbe Anordnung wieder auf: Quellen, die in der
+Szene liegen, kommen als verbundene Fenster zurück, alles andere als entkoppeltes
+Fenster mit der zuletzt bekannten Lage. Minimierte Fenster bleiben minimiert.
+
+Zwei Dinge, die dabei nötig waren: `script.js` lädt die Quellenliste beim Verbinden
+nicht von selbst — das passiert erst beim Öffnen der Liste im Startmenü. Fürs
+Wiederherstellen wird sie deshalb einmal selbst angestoßen. Und das Mitschreiben der
+Anordnung pausiert, bis das Wiederherstellen durch ist; sonst überschriebe der
+Zwei-Sekunden-Takt die gespeicherte Anordnung mit der noch leeren Fensterliste.
+
+Der Aufbau läuft genau einmal je Verbindung und nur, wenn noch kein Fenster offen ist —
+ein Szenenwechsel verdoppelt also nichts. Abschaltbar über ein Häkchen im
+Verbindungsfenster. In der Konsole: `taskbarSpeicher.layout()` und `.layoutLeeren()`.
+
+
 ### Abgleich mit OBS
 
 `features.js` ersetzt `syncWindowsFromOBS` und `startSyncLoop`. Der ursprüngliche Loop

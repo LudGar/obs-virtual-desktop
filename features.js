@@ -17,7 +17,10 @@
 
   const SCHLUESSEL = "obs-taskbar:v1";
 
-  const leer = { verbindung: null, autoVerbinden: true, passwortMerken: false, geometrie: {} };
+  const leer = {
+    verbindung: null, autoVerbinden: true, passwortMerken: false,
+    geometrie: {}, layout: [], layoutMerken: true
+  };
 
   function laden() {
     try { return Object.assign({}, leer, JSON.parse(localStorage.getItem(SCHLUESSEL)) || {}); }
@@ -47,6 +50,8 @@
 
     kasten.appendChild(schalter("auto-connect", "Beim Start automatisch verbinden", daten.autoVerbinden,
       v => { daten.autoVerbinden = v; sichern(); }));
+    kasten.appendChild(schalter("layout-merken", "Offene Fenster merken und beim Start wiederherstellen",
+      daten.layoutMerken, v => { daten.layoutMerken = v; sichern(); }));
     kasten.appendChild(schalter("save-password", "Passwort mitspeichern", daten.passwortMerken,
       v => {
         daten.passwortMerken = v;
@@ -96,7 +101,12 @@
 
   setInterval(() => {
     const jetzt = (typeof connected !== "undefined") && connected;
-    if (jetzt && !warVerbunden) { verbindungMerken(); vonHandGetrennt = false; }
+    if (jetzt && !warVerbunden) {
+      verbindungMerken();
+      vonHandGetrennt = false;
+      layoutGesetzt = false;
+      layoutStarten();        // script.js lädt die Quellen beim Verbinden nicht von selbst
+    }
     if (!jetzt && warVerbunden) { vonHandGetrennt = true; }
     warVerbunden = jetzt;
   }, 500);
@@ -209,9 +219,27 @@
     sichern();
   }
 
+  let layoutGesetzt = false;
+  let stelltGerade = false;
+
+  /* Welche Fenster gerade offen sind, in der Reihenfolge der Leiste */
+  function layoutMerken() {
+    if (!daten.layoutMerken || !Array.isArray(windows)) return;
+    if (!connected) return;            // beim Trennen leert script.js die Liste
+    /* Erst schreiben, wenn das Wiederherstellen durch ist. Sonst überschreibt
+       der Takt die gespeicherte Anordnung mit der noch leeren Fensterliste. */
+    if (!layoutGesetzt) return;
+    const jetzt = windows.map(w => ({ name: w.title, minimiert: !!w.minimized }));
+    const vorher = JSON.stringify(daten.layout);
+    if (JSON.stringify(jetzt) === vorher) return;
+    daten.layout = jetzt;
+    sichern();
+  }
+
   setInterval(() => {
     if (!Array.isArray(windows)) return;
     windows.forEach(merke);
+    layoutMerken();
   }, 2000);
 
   /* Quellen, die gespeichert sind, aber gerade nicht in der Szene liegen */
@@ -288,7 +316,66 @@
   window.loadSources = async function () {
     await _loadSources.apply(this, arguments);
     ankoppeln();
+    layoutHerstellen();
   };
+
+  /* Nach dem Verbinden die zuletzt offenen Fenster selbst wieder aufbauen.
+
+     Läuft genau einmal je Verbindung und nur, wenn noch nichts offen ist —
+     sonst würde ein Szenenwechsel die Fenster verdoppeln. */
+  /* Beim Verbinden holt script.js die Quellenliste nicht — das passiert erst,
+     wenn man die Liste im Startmenü öffnet. Für das Wiederherstellen brauchen
+     wir sie aber sofort, also einmal selbst anstoßen. */
+  async function layoutStarten() {
+    if (!daten.layoutMerken) { layoutGesetzt = true; return; }
+    if (!Array.isArray(daten.layout) || !daten.layout.length) {
+      layoutGesetzt = true;            // nichts zu holen, ab jetzt darf gespeichert werden
+      return;
+    }
+    try { await loadSources(); }
+    catch (e) { console.debug("Quellen nicht ladbar:", e); }
+    await layoutHerstellen();
+  }
+
+  async function layoutHerstellen() {
+    if (!daten.layoutMerken || layoutGesetzt || stelltGerade) return;
+    if (!connected || !Array.isArray(daten.layout) || !daten.layout.length) return;
+    if (Array.isArray(windows) && windows.length) { layoutGesetzt = true; return; }
+
+    stelltGerade = true;
+    let aufgebaut = 0, entkoppelt = 0;
+
+    for (const eintrag of daten.layout) {
+      const name = eintrag && eintrag.name;
+      if (!name) continue;
+      if (windows.some(w => w.title === name)) continue;
+
+      const quelle = (Array.isArray(sources) ? sources : [])
+        .find(s => s.sourceName === name);
+
+      try {
+        if (quelle) { await createWindowFromSource(quelle); aufgebaut++; }
+        else if (daten.geometrie[name]) { entkoppeltOeffnen(name); entkoppelt++; }
+        else continue;
+      } catch (e) {
+        console.debug("Fenster „" + name + "“ ließ sich nicht öffnen:", e);
+        continue;
+      }
+
+      if (eintrag.minimiert) {
+        const neu = windows[windows.length - 1];
+        if (neu && !neu.minimized) toggleWindow(neu.id);
+      }
+    }
+
+    stelltGerade = false;
+    layoutGesetzt = true;
+
+    if (aufgebaut || entkoppelt) {
+      console.log("Layout wiederhergestellt: " + aufgebaut + " verbunden"
+                + (entkoppelt ? ", " + entkoppelt + " ohne Quelle" : ""));
+    }
+  }
 
   function ankoppeln() {
     if (!Array.isArray(windows) || !Array.isArray(sources)) return;
@@ -906,6 +993,8 @@
   window.taskbarSpeicher = {
     lesen:  () => daten,
     leeren: () => { daten = Object.assign({}, leer); sichern(); },
-    vergessen: name => { delete daten.geometrie[name]; sichern(); }
+    vergessen: name => { delete daten.geometrie[name]; sichern(); },
+    layout: () => daten.layout,
+    layoutLeeren: () => { daten.layout = []; sichern(); }
   };
 })();
